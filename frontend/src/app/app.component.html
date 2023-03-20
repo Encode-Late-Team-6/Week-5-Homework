@@ -1,0 +1,182 @@
+<style>
+  input {
+    min-width: 150px;
+    min-height: 32px;
+    padding: 4px;
+    border-radius: 4px;
+  }
+</style>
+
+<div class="px-4 py-5 my-5">
+  <h1 class="display-5 fw-bold text-center">Weekend Project #5</h1>
+  <p class="text-center">By Team 6 (@Kriyo @Great Ape 🦍 @Akezh @monstr @jim @Cuegod @sudo @Hayley is Coding)</p>
+
+  <div class="container">
+    <div class="col-lg-12 d-flex justify-content-center">
+      <button *ngIf="!isWalletConnected; else alreadyConnected" type="button" class="btn btn-warning" (click)="connectWallet()">
+        Connect Wallet
+      </button>
+      <ng-template #alreadyConnected>
+        <button type="button" class="btn btn-warning">
+          Connected
+        </button>
+      </ng-template>
+      <button type="button" class="btn btn-primary mx-5" (click)="getContractAddress()">
+        Get Betting Contract Address
+      </button>
+      <button type="button" class="btn btn-primary" (click)="getMyTokenContractAddress()">
+        Get LOTTERY (ERC20) Contract Address
+      </button>
+      <button type="button" class="btn btn-primary" (click)="checkstate()">
+        Check If betting is Open?
+      </button>
+      <button type="button" class="btn btn-primary" (click)="displayPrize()">
+        Prize Info
+      </button>
+      <button type="button" class="btn btn-primary" (click)="closebets()">
+        Close Bets
+      </button>
+    </div>
+  </div>
+
+  <div class="container mt-5">
+    <div class="row gap-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title mb-4">Wallet info</h5>
+            <p class="card-text"><span class="fw-bold">Wallet address:</span> {{ userAddress }}</p>
+            <p class="card-text"><span class="fw-bold">ETH Balance:</span> {{ userETHBalance ? userETHBalance + ' ETH' : '' }}</p>
+            <p class="card-text"><span class="fw-bold">ERC20 Token Balance:</span> {{ userTokenBalance ? userTokenBalance + ' LOT' : '' }}</p>
+            <p class="card-text"><span class="fw-bold">Prize Info:</span> {{ prizeInfo }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title mb-4">Contracts info</h5>
+            <p class="card-text"><span class="fw-bold">Betting Contract address:</span> {{ ContractAddress }}</p>
+            <p class="card-text"><span class="fw-bold">LOTTERY Token (ERC20) Contract address:</span> {{ myTokenContractAddress }}</p>
+            <p class="card-text"><span class="fw-bold">Total Supply: </span> {{ totalSupply ? totalSupply + ' LOT' : '' }}</p>
+            <p class="card-text"><span class="fw-bold">Betting is: </span> {{ bettingOpen ? 'open' : 'closed' }}</p>
+            <p class="card-text"><span class="fw-bold">Bets Closed Tx: </span> {{closingInfo}}</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">1. Buying</h5>
+
+            <div class="my-4">
+              <div *ngIf="isWalletConnected">
+                <input #valueInput class="input" type="number" min="0" max="10" placeholder="Token amount">
+                <button type="button" class="btn btn-primary mx-2" (click)="requestTokens(valueInput.value)">
+                  Buy Tokens
+                </button>
+              </div>
+            </div>
+
+            <p *ngIf="loadingMintingTxnInfo">Transaction is loading......</p>
+              <div *ngIf="mintingInfo">
+                <h5 class="card-title mb-4">Transaction info</h5>
+                <p class="card-text"><span class="fw-bold">Message:</span> {{ mintingInfo }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">2. Betting</h5>
+  
+              <div class="my-4">
+                <div *ngIf="isWalletConnected">
+                  <input #valueInput class="input" type="number" min="0" max="10" placeholder="Token amount">
+                  <button type="button" class="btn btn-primary mx-2" (click)="bet(valueInput.value)">
+                    Bet
+                  </button>
+                </div>
+              </div>
+  
+              <p *ngIf="loadingBettingTxnInfo">Transaction is loading......</p>
+  
+              <div *ngIf="bettingInfo">
+                <h5 class="card-title mb-4">Transaction info</h5>
+  
+                  <p class="card-text"><span class="fw-bold">Transaction hash:</span> {{ bettingInfo }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            
+            <h5 class="card-title">2. Burning Tokens</h5>
+
+            <div class="my-4">
+              <div *ngIf="isWalletConnected">
+                <input #valueInput class="input" type="number" min="0" max="10" placeholder="Token amount">
+                <button type="button" class="btn btn-primary mx-2" (click)="burn(valueInput.value)">
+                  Burn
+                </button>
+              </div>
+            </div>
+
+            <p *ngIf="loadingBurningTxnInfo">Transaction is loading......</p>
+
+            <div *ngIf="delegatingInfo || delegatingError">
+              <h5 class="card-title mb-4">Transaction info</h5>
+
+              <div *ngIf="delegatingError">
+                <p class="card-text"><span class="fw-bold">Error message:</span> {{ delegatingError.message }}</p>
+                <p class="card-text"><span class="fw-bold">Error details:</span> {{ delegatingError.detailedMessage }}</p>
+              </div>
+
+              <div *ngIf="delegatingInfo">
+                <p class="card-text"><span class="fw-bold">Message:</span> {{ delegatingInfo.message }}</p>
+                <p class="card-text"><span class="fw-bold">Transaction hash:</span> {{ delegatingInfo.transactionHash }}</p>
+                <p class="card-text"><a href="{{ delegatingInfo.etherscanLink }}" class="fw-bold">Etherscan link:</a> {{ delegatingInfo.etherscanLink }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">3. Claiming Prize</h5>
+
+            <div class="my-4">
+              <div *ngIf="isWalletConnected">
+                <input #valueInput class="input" type="number" min="0" max="10" placeholder="Token amount">
+                <button type="button" class="btn btn-primary mx-2" (click)="claim(valueInput.value)">
+                  Claim
+                </button>
+              </div>
+            </div>
+
+            <p *ngIf="loadingClaimingTxnInfo">Transaction is loading......</p>
+
+            <div *ngIf="votingInfo || votingError">
+              <h5 class="card-title mb-4">Transaction info</h5>
+
+              <div *ngIf="votingError">
+                <p class="card-text"><span class="fw-bold">Error message:</span> {{ votingError.message }}</p>
+                <p class="card-text"><span class="fw-bold">Error details:</span> {{ votingError.detailedMessage }}</p>
+              </div>
+
+              <div *ngIf="votingInfo">
+                <p class="card-text"><span class="fw-bold">Message:</span> {{ votingInfo.message }}</p>
+                <p class="card-text"><span class="fw-bold">Transaction hash:</span> {{ votingInfo.transactionHash }}</p>
+                <p class="card-text"><a href="{{ votingInfo.etherscanLink }}" class="fw-bold">Etherscan link:</a> {{ votingInfo.etherscanLink }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
